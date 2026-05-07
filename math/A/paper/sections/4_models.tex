@@ -1,0 +1,160 @@
+% 4_models.tex — 模型建立
+
+\subsection{运动学模型}
+
+\subsubsection{导弹运动模型}
+
+来袭导弹$i$以恒定速度$v_M = 300$ m/s沿直线飞向假目标（坐标原点）。设导弹$i$在雷达发现时刻（$t=0$）的初始位置为$\vec{P}_{M_i}(0) = (x_i^0, y_i^0, z_i^0)$，则其速度矢量为指向原点的单位向量乘以速率：
+
+\begin{equation}
+    \vec{v}_{M_i} = -v_M \cdot \frac{\vec{P}_{M_i}(0)}{\|\vec{P}_{M_i}(0)\|}
+\end{equation}
+
+在任意时刻$t \ge 0$，导弹$i$的位置为：
+
+\begin{equation}
+    \vec{P}_{M_i}(t) = \vec{P}_{M_i}(0) + \vec{v}_{M_i} \cdot t
+\end{equation}
+
+导弹到达假目标（原点）的时刻为：
+
+\begin{equation}
+    t_{\text{impact}}^{(i)} = \frac{\|\vec{P}_{M_i}(0)\|}{v_M}
+\end{equation}
+
+\subsubsection{无人机运动模型}
+
+无人机$k$在$t=0$时刻接收到控制中心的任务指令后，可瞬时调整飞行方向。之后以恒定速度$v_k \in [70, 140]$ m/s、恒定航向角$\theta_k \in [0, 360)^\circ$沿直线等高度飞行。航向角定义为从$x$轴正方向逆时针旋转的角度。无人机$k$的速度矢量为：
+
+\begin{equation}
+    \vec{v}_{U_k} = v_k \cdot (\cos\theta_k,\; \sin\theta_k,\; 0)
+\end{equation}
+
+在任意时刻$t \ge 0$，无人机$k$的位置为：
+
+\begin{equation}
+    \vec{P}_{U_k}(t) = \vec{P}_{U_k}(0) + \vec{v}_{U_k} \cdot t
+\end{equation}
+
+其中$\vec{P}_{U_k}(0)$为给定初始位置，且无人机始终保持在初始高度$z_{U_k}$飞行。
+
+\subsubsection{烟幕干扰弹自由落体模型}
+
+烟幕干扰弹在投放时刻$t_r$从无人机当前位置脱离，承受无人机的水平速度分量，在重力作用下进行自由落体运动。设投放瞬间无人机的位置为$\vec{P}_{\text{rel}} = (x_r, y_r, z_r)$，无人机的水平速度分量为$(v_{U,x}, v_{U,y})$，则在投放后任意$\tau \ge 0$时刻，干扰弹的位置为：
+
+\begin{equation}
+    \begin{cases}
+        x(\tau) = x_r + v_{U,x} \cdot \tau \\
+        y(\tau) = y_r + v_{U,y} \cdot \tau \\
+        z(\tau) = z_r - \dfrac{1}{2}g\tau^2
+    \end{cases}
+\end{equation}
+
+其中$g=9.8$ m/s$^2$为重力加速度。起爆时刻$t_d = t_r + \Delta t$对应的起爆位置为：
+
+\begin{equation}
+    \vec{P}_D = \left(x_r + v_{U,x}\Delta t,\; y_r + v_{U,y}\Delta t,\; z_r - \frac{1}{2}g\Delta t^2\right)
+\end{equation}
+
+\subsubsection{烟幕云团运动模型}
+
+烟幕干扰弹起爆后瞬时形成球状烟幕云团。云团中心以恒定速度$v_{\text{sink}} = 3$ m/s垂直下沉。对于在时刻$t_d$起爆的干扰弹，在时刻$t \ge t_d$，烟幕球心位置为：
+
+\begin{equation}
+    \vec{P}_S(t) = \vec{P}_D + (0,\; 0,\; -v_{\text{sink}}) \cdot (t - t_d)
+\end{equation}
+
+烟幕云团的有效遮蔽区域为以$\vec{P}_S(t)$为球心、半径$R_S = 10$ m的球体：
+
+\begin{equation}
+    \mathcal{S}(t) = \{\vec{X} \in \mathbb{R}^3 : \|\vec{X} - \vec{P}_S(t)\| \le R_S\}
+\end{equation}
+
+有效遮蔽时段为$[t_d,\; t_d + T_{\text{eff}}]$，其中$T_{\text{eff}} = 20$ s。
+
+\subsection{视线遮挡几何模型}
+
+\subsubsection{真目标离散化}
+
+真目标为底面圆心位于$(0,200,0)$、半径$R_T = 7$ m、高度$H_T = 10$ m的直立圆柱体：
+
+\begin{equation}
+    \mathcal{T} = \{(x,y,z) \in \mathbb{R}^3 : x^2 + (y-200)^2 \le R_T^2,\; 0 \le z \le H_T\}
+\end{equation}
+
+为便于计算视线遮挡，将圆柱表面离散化为$N$个采样点$\{\vec{T}_j\}_{j=1}^{N}$，包括侧面圆环、顶面和底面的均匀采样点。本文取$N = 80$，在精度和计算效率之间取得平衡。
+
+\subsubsection{单点视线遮挡判断}
+
+考虑时刻$t$，导弹位于$\vec{M} = \vec{P}_{M_i}(t)$，烟幕球心位于$\vec{S} = \vec{P}_S(t)$，判断从导弹到目标采样点$\vec{T}_j$的视线是否被烟幕球体遮挡。
+
+导弹到目标点的线段参数化表示为：
+\begin{equation}
+    \vec{L}(\lambda) = \vec{M} + \lambda(\vec{T}_j - \vec{M}),\quad \lambda \in [0, 1]
+\end{equation}
+
+球心到线段上任意点的距离最小时对应的参数$\lambda^*$可通过投影求得：
+\begin{equation}
+    \lambda^* = \frac{(\vec{S} - \vec{M}) \cdot (\vec{T}_j - \vec{M})}{\|\vec{T}_j - \vec{M}\|^2}
+\end{equation}
+
+将$\lambda^*$截断到线段$[0, 1]$上得到$\lambda_c = \max(0, \min(1, \lambda^*))$，则线段上距离球心最近的点为$\vec{C} = \vec{L}(\lambda_c)$。当最近距离小于等于球体半径时，视线被遮挡：
+
+\begin{equation}
+    \text{blocked}(\vec{M}, \vec{T}_j, \vec{S}) = \mathbf{1}\{\|\vec{C} - \vec{S}\| \le R_S\}
+\end{equation}
+
+\subsubsection{完整遮蔽判定与有效遮蔽时间}
+
+在时刻$t$，真目标被认为处于\textbf{完全遮蔽}状态，当且仅当所有$N$个采样点的视线均被至少一枚处于有效期内的烟幕干扰弹遮挡：
+
+\begin{equation}
+    \text{shielded}(t) = \bigvee_{b=1}^{B} \left[\mathbf{1}\{t \in [t_d^{(b)}, t_d^{(b)} + T_{\text{eff}}]\} \wedge \bigwedge_{j=1}^{N} \text{blocked}(\vec{M}(t), \vec{T}_j, \vec{S}^{(b)}(t))\right]
+\end{equation}
+
+其中$B$为干扰弹总数，$t_d^{(b)}$和$\vec{S}^{(b)}(t)$分别为第$b$枚弹的起爆时间和烟幕球心位置。
+
+单个干扰弹的有效遮蔽时长为该弹在有效期$[t_d, t_d+T_{\text{eff}}]$内使目标处于完全遮蔽状态的时间长度：
+
+\begin{equation}
+    T_{\text{shield}}^{(b)} = \int_{t_d}^{t_d+T_{\text{eff}}} \text{shielded}^{(b)}(t)\;dt
+\end{equation}
+
+多个干扰弹的总有效遮蔽时长为各弹遮蔽时段的并集长度：
+
+\begin{equation}
+    T_{\text{shield}}^{\text{total}} = \int_{0}^{\min(t_{\text{impact}}, \max_b(t_d^{(b)}+T_{\text{eff}}))} \text{shielded}(t)\;dt
+\end{equation}
+
+在实际计算中，以时间步长$\delta t = 0.01$ s进行离散化数值积分。
+
+\subsection{优化模型}
+
+\subsubsection{问题2的优化模型（单弹）}
+
+\begin{align}
+    \max_{\theta, v, t_r, \Delta t} \quad & T_{\text{shield}}(\theta, v, t_r, \Delta t) \\
+    \text{s.t.} \quad & 0 \le \theta < 360 \\
+    & 70 \le v \le 140 \\
+    & t_r \ge 0 \\
+    & \Delta t > 0 \\
+    & z_D(\theta, v, t_r, \Delta t) > 0
+\end{align}
+
+\subsubsection{问题3的优化模型（三弹）}
+
+\begin{align}
+    \max_{\theta, v, \{t_r^{(j)}\}, \{\Delta t^{(j)}\}} \quad & T_{\text{shield}}^{\text{total}}(\theta, v, \{t_r^{(j)}\}, \{\Delta t^{(j)}\}) \\
+    \text{s.t.} \quad & \text{同问题2的约束} \\
+    & t_r^{(j+1)} - t_r^{(j)} \ge 1,\quad j=1,2
+\end{align}
+
+\subsubsection{问题5的优化模型（全场景）}
+
+问题5涉及3枚导弹，采用maximin准则保证对各导弹均有较好的遮蔽效果：
+
+\begin{align}
+    \max \quad & \alpha \cdot \min_{i \in \{1,2,3\}} T_{\text{shield}}^{(i)} + \beta \cdot \sum_{i=1}^{3} T_{\text{shield}}^{(i)}
+\end{align}
+
+其中$\alpha=10, \beta=1$为权重参数，保证优先最大化最小遮蔽时间，次要优化总遮蔽时间。

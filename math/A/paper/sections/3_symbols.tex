@@ -1,0 +1,35 @@
+% 3_symbols.tex — 符号说明
+
+本文使用的主要符号及其含义如表\ref{tab:symbols}所示。
+
+\begin{table}[H]
+    \centering
+    \caption{主要符号说明}
+    \label{tab:symbols}
+    \begin{tabular}{ccl}
+        \toprule
+        \textbf{符号} & \textbf{含义} & \textbf{单位} \\
+        \midrule
+        $\vec{P}_{M_i}(t)$ & 导弹$i$在时刻$t$的位置矢量 & m \\
+        $v_M$ & 导弹飞行速度 (300) & m/s \\
+        $\vec{P}_{U_k}(t)$ & 无人机$k$在时刻$t$的位置矢量 & m \\
+        $\theta_k$ & 无人机$k$的航向角（从$x$轴正方向逆时针测量） & $\degree$ \\
+        $v_k$ & 无人机$k$的飞行速度 & m/s \\
+        $t_{r}^{[k,j]}$ & 无人机$k$投放第$j$枚干扰弹的时刻 & s \\
+        $\Delta t^{[k,j]}$ & 第$j$枚干扰弹从投放到起爆的延迟时间 & s \\
+        $\vec{P}_{D}^{[k,j]}$ & 第$j$枚干扰弹的起爆位置 & m \\
+        $\vec{P}_{S}(t)$ & 烟幕云团中心在时刻$t$的位置 & m \\
+        $R_S$ & 烟幕云团有效遮蔽半径 (10) & m \\
+        $v_{\text{sink}}$ & 烟幕云团下沉速度 (3) & m/s \\
+        $T_{\text{eff}}$ & 烟幕云团有效持续时间 (20) & s \\
+        $R_T$ & 真目标圆柱底面半径 (7) & m \\
+        $H_T$ & 真目标圆柱高度 (10) & m \\
+        $g$ & 重力加速度 (9.8) & m/s$^2$ \\
+        $T_{\text{shield}}$ & 有效遮蔽总时长 & s \\
+        $\mathcal{T}$ & 真目标空间区域 & -- \\
+        $\mathcal{S}(t)$ & 烟幕球体空间区域 & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+此外，本文涉及的所有坐标均以假目标底面圆心为原点、$x$轴指向正北、$y$轴指向正东、$z$轴垂直向上的右手直角坐标系中表示，单位为米(m)。

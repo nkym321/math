@@ -1,0 +1,139 @@
+% main.tex — 2025年全国大学生数学建模竞赛 A题论文
+% 烟幕干扰弹的投放策略
+%
+% 编译方式: pdflatex main && bibtex main && pdflatex main && pdflatex main
+
+\documentclass[12pt,a4paper]{ctexart}
+
+% === 页面设置 ===
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% === 数学公式 ===
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}
+
+% === 图表 ===
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{subcaption}
+
+% === 算法 ===
+\usepackage[ruled,linesnumbered]{algorithm2e}
+\renewcommand{\algorithmcfname}{算法}
+
+% === 参考文献 ===
+\usepackage[backend=biber,style=gb7714-2015]{biblatex}
+\addbibresource{refs.bib}
+
+% === 其他 ===
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% === 标题信息 ===
+\title{\textbf{烟幕干扰弹的投放策略}}
+\author{%
+    \small 参赛队号：\underline{\hspace{3cm}}
+}
+\date{2025年9月}
+\usepackage{gensymb} % 提供 \degree 命令
+\begin{document}
+
+% === 封面/标题页 ===
+\maketitle
+\thispagestyle{empty}
+
+% ========================================
+% 摘要
+% ========================================
+\input{sections/abstract}
+
+\newpage
+
+% ========================================
+% 1. 问题重述
+% ========================================
+\section{问题重述}
+\input{sections/1_restatement}
+
+% ========================================
+% 2. 模型假设
+% ========================================
+\section{模型假设}
+\input{sections/2_assumptions}
+
+% ========================================
+% 3. 符号说明
+% ========================================
+\section{符号说明}
+\input{sections/3_symbols}
+
+% ========================================
+% 4. 模型建立
+% ========================================
+\section{模型建立}
+\input{sections/4_models}
+
+% ========================================
+% 5. 模型求解
+% ========================================
+\section{模型求解}
+\input{sections/5_solution}
+
+% ========================================
+% 6. 结果分析
+% ========================================
+\section{结果分析}
+\input{sections/6_analysis}
+
+% ========================================
+% 7. 灵敏度分析
+% ========================================
+\section{灵敏度分析}
+\input{sections/7_sensitivity}
+
+% ========================================
+% 8. 模型评价
+% ========================================
+\section{模型评价}
+\input{sections/8_evaluation}
+
+% ========================================
+% 9. 结论
+% ========================================
+\section{结论}
+\input{sections/9_conclusion}
+
+% ========================================
+% 参考文献
+% ========================================
+\newpage
+\printbibliography[title={参考文献}]
+
+% ========================================
+% 附录
+% ========================================
+\appendix
+\section{MATLAB代码核心模块}
+本文所使用的MATLAB代码按照模块化设计，主要包含以下核心文件：
+\begin{enumerate}[label=\texttt{code/}]
+    \item \texttt{config.m} —— 参数初始化与全局配置
+    \item \texttt{kinematics/} —— 运动学模块（导弹、无人机、干扰弹、烟幕云团轨迹计算）
+    \item \texttt{geometry/} —— 几何计算模块（目标离散化、视线遮挡判断、遮蔽时间计算）
+    \item \texttt{optimization/} —— 优化模块（目标函数、约束条件、遗传算法包装器）
+    \item \texttt{solve\_Q1.m} $\sim$ \texttt{solve\_Q5.m} —— 各问题求解脚本
+    \item \texttt{io/} —— 文件输出模块（Excel结果写入）
+    \item \texttt{visualize/} —— 可视化模块（3D轨迹图、热力图、收敛曲线）
+\end{enumerate}
+
+完整代码见电子附件。
+
+\end{document}
+% !TEX root = main.tex

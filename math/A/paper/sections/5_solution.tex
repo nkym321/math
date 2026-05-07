@@ -1,0 +1,94 @@
+% 5_solution.tex — 模型求解
+
+\subsection{问题1的求解}
+
+问题1为确定性计算，所有参数均已给定。FY1以$v=120$ m/s、航向角$\theta=180^\circ$（朝向假目标方向）飞行。具体计算步骤为：
+
+\begin{enumerate}[label=步骤\arabic*：]
+    \item 计算$t_r=1.5$ s时FY1的位置：$\vec{P}_{\text{rel}} = (17800 - 120 \times 1.5,\; 0,\; 1800) = (17620, 0, 1800)$ m；
+    \item 计算$\Delta t = 3.6$ s内干扰弹的自由落体运动，得起爆位置$\vec{P}_D$；
+    \item 起爆后，云团以3 m/s下沉，从$t=5.1$ s到$t=25.1$ s内有效；
+    \item 以0.01 s时间步长遍历仿真时间，在每个时间步检查M1视线是否被遮挡；
+    \item 累积有效遮蔽时间。
+\end{enumerate}
+
+\subsection{问题2的求解——网格搜索+SQP混合优化}
+
+问题2的决策变量为$(\theta, v, t_r, \Delta t)$共4维。采用\textbf{两阶段优化策略}：
+
+\subsubsection{阶段一：粗粒度网格搜索}
+
+在以下搜索范围内进行网格采样：
+\begin{itemize}
+    \item 航向角$\theta$：$0^\circ:5^\circ:355^\circ$ (72个)
+    \item 飞行速度$v$：$70:5:140$ m/s (15个)
+    \item 投放时刻$t_r$：$0:0.5:10$ s (21个)
+    \item 起爆延迟$\Delta t$：$0.5:0.5:15$ s (30个)
+\end{itemize}
+
+总网格点数约68万。对每个网格点，首先进行快速约束检查（起爆高度$>0$、起爆时刻$<$导弹到达时刻），通过后再计算目标函数值。保留目标函数值最优的前100个候选点。
+
+\subsubsection{阶段二：SQP局部精化}
+
+以阶段一的前5个最优候选点为初始点，使用MATLAB的\texttt{fmincon}函数（采用SQP算法）进行局部优化。取所有运行的最优结果作为最终解。
+
+\subsection{问题3--5的求解——遗传算法}
+
+问题3--5的决策变量维数较高（8$\sim$40维），且目标函数非凸、多模态，采用遗传算法(GA)进行全局优化。
+
+\subsubsection{遗传算法设计}
+
+\begin{itemize}
+    \item \textbf{编码方式}：实数编码，每个决策变量直接以浮点数表示；
+    \item \textbf{种群初始化}：在变量边界内均匀随机生成，问题4和5利用启发式规则生成部分初始个体；
+    \item \textbf{选择算子}：锦标赛选择(tournament selection)，锦标赛规模为2；
+    \item \textbf{交叉算子}：分散交叉(scattered crossover)，交叉概率$p_c=0.8$；
+    \item \textbf{变异算子}：自适应可行变异(adaptive feasible mutation)，变异概率$p_m=0.1$；
+    \item \textbf{精英保留}：每代保留5\%的最优个体直接进入下一代；
+    \item \textbf{停止准则}：达到最大代数或最优适应度值连续50代无改善。
+\end{itemize}
+
+\subsubsection{问题5的分解策略}
+
+针对问题5的高维特征（$5 \times 8 = 40$维），采用\textbf{基于距离的预分配策略}：
+
+\begin{algorithm}[H]
+    \caption{问题5的UAV-导弹任务分配策略}
+    \SetAlgoLined
+    计算每架无人机到每枚导弹初始位置的欧氏距离矩阵$D \in \mathbb{R}^{5 \times 3}$\;
+    根据距离就近原则，为每架无人机分配主要负责的导弹\;
+    \ForEach{导弹$m \in \{1,2,3\}$}{
+        收集分配给$m$的UAV子集$\mathcal{U}_m$\;
+        以$\mathcal{U}_m$的决策变量为优化变量，独立优化对$m$的遮蔽时间\;
+    }
+    以独立优化的结果作为初始解，进行全局联合优化\;
+\end{algorithm}
+
+各问题的GA参数设置如表\ref{tab:ga_params}所示。
+
+\begin{table}[H]
+    \centering
+    \caption{GA参数设置}
+    \label{tab:ga_params}
+    \begin{tabular}{ccccc}
+        \toprule
+        \textbf{问题} & \textbf{变量数} & \textbf{种群规模} & \textbf{最大代数} & \textbf{停滞限制} \\
+        \midrule
+        Q3 & 8 & 250 & 300 & 40 \\
+        Q4 & 12 & 300 & 400 & 60 \\
+        Q5 & 40 & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+注：问题5由于维度较高，采用fmincon的SQP算法从启发式初始解出发进行优化。
+
+\subsection{算法收敛性分析}
+
+GA的收敛性通过以下措施保证：
+\begin{enumerate}[label=(\arabic*)]
+    \item 精英保留策略确保了最优解不会在进化过程中丢失；
+    \item 自适应变异率在种群多样性下降时自动提高，避免早熟收敛；
+    \item 通过多次随机重启（3$\sim$5次）选取最优结果，降低陷入局部最优的风险；
+    \item GA结果经fmincon局部精化，确保最终解满足一阶最优性条件。
+\end{enumerate}
